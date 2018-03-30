@@ -1,0 +1,27 @@
+version: "3"
+services:
+  nginx:
+    image: luke/nginx
+    build:
+      context: ./nginx
+      dockerfile: Dockerfile-1.13
+    container_name: web_nginx
+    volumes:
+      - ./src:/src
+      - ./logs/nginx:/var/log/nginx
+      - ./config/nginx/nginx.conf:/etc/nginx/nginx.conf
+      - ./config/nginx/conf.d:/etc/nginx/conf.d
+    ports:
+      - "80:80"
+      - "443:443"
+    restart: always
+    networks:
+      vpcbr:
+        ipv4_address: 192.168.50.2
+
+networks:
+  vpcbr:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 192.168.50.0/24
