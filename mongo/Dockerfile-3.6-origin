@@ -1,0 +1,3 @@
+FROM mongo:3.6
+
+RUN groupmod --gid 1000 mongodb && usermod --uid 1000 --gid 1000 mongodb

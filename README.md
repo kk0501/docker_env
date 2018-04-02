@@ -12,6 +12,6 @@ Here are some docker images built in Ubuntu 16.04 environment
 - mongo
 
 ## usage:
-- create a docker compose file
+- create a docker compose file(as docker-compose-origin.yml)
 - select the server from docker-compose.yml you want to use
-- docker-compose up
+- docker-compose -f create_file.yml up
