@@ -38,6 +38,7 @@ services:
       - mysql-db
       - redis-db
       - memcached-db
+      - mongo-db
     networks:
       vpcbr:
         ipv4_address: 192.168.50.3
@@ -93,6 +94,24 @@ services:
     networks:
       vpcbr:
         ipv4_address: 192.168.50.6
+  mongo-db:
+    image: luke/mongo
+    build:
+      context: ./mongo
+      dockerfile: Dockerfile-3.6
+    container_name: web_mongo
+    environment:
+      - MONGO_DATA_DIR=/data/db
+      - MONGO_LOG_DIR=/dev/null
+    volumes:
+      - ./data/mongo:/data/db
+    ports:
+        - 27017:27017
+    command: ["mongod", "--smallfiles", "--logpath=/dev/null"]
+    restart: always
+    networks:
+      vpcbr:
+        ipv4_address: 192.168.50.7
 
 networks:
   vpcbr:
