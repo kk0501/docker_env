@@ -36,6 +36,7 @@ services:
     restart: always
     links:
       - mysql-db
+      - redis-db
     networks:
       vpcbr:
         ipv4_address: 192.168.50.3
@@ -61,6 +62,23 @@ services:
     networks:
       vpcbr:
         ipv4_address: 192.168.50.4
+  redis-db:
+    image: luke/redis
+    build:
+      context: ./redis
+      dockerfile: Dockerfile-4
+    container_name: web_redis
+    volumes:
+      - ./data/redis:/data
+      - ./config/redis/redis.conf:/etc/redis/redis.conf
+      - ./logs/redis:/var/log/redis
+    command: [ "redis-server", "/etc/redis/redis.conf" ]
+    ports:
+      - "6379:6379"
+    restart: always
+    networks:
+      vpcbr:
+        ipv4_address: 192.168.50.5
 
 networks:
   vpcbr:
