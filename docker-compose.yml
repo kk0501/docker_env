@@ -37,6 +37,7 @@ services:
     links:
       - mysql-db
       - redis-db
+      - memcached-db
     networks:
       vpcbr:
         ipv4_address: 192.168.50.3
@@ -79,6 +80,19 @@ services:
     networks:
       vpcbr:
         ipv4_address: 192.168.50.5
+  memcached-db:
+    image: luke/memcached
+    build:
+      context: ./memcached
+      dockerfile: Dockerfile-1.5
+    container_name: web_memcached
+    command: [ "memcached", "-m", "64" ]
+    ports:
+        - "11211:11211"
+    restart: always
+    networks:
+      vpcbr:
+        ipv4_address: 192.168.50.6
 
 networks:
   vpcbr:
