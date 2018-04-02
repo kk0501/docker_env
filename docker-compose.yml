@@ -34,9 +34,33 @@ services:
     ports:
       - "9000:9000"
     restart: always
+    links:
+      - mysql-db
     networks:
       vpcbr:
         ipv4_address: 192.168.50.3
+  mysql-db:
+    image: luke/mysql
+    build:
+      context: ./mysql
+      dockerfile: Dockerfile-5.7
+    container_name: web_mysql
+    volumes:
+      - ./data/mysql:/var/lib/mysql
+      - ./config/mysql/mysqld.cnf:/etc/mysql/mysql.conf.d/mysqld.cnf
+      - ./config/mysql/mysql.cnf:/etc/mysql/conf.d/mysql.cnf
+      - ./logs/mysql:/var/log/mysql
+    ports:
+      - "3306:3306"
+    restart: always
+    environment:
+      - MYSQL_DATABASE=test
+      - MYSQL_ROOT_PASSWORD=laravel@2018
+      - MYSQL_USER=phper
+      - MYSQL_PASSWORD=2018@laravel
+    networks:
+      vpcbr:
+        ipv4_address: 192.168.50.4
 
 networks:
   vpcbr:
