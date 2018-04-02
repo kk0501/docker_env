@@ -1,4 +1,5 @@
 version: "3"
+
 services:
   nginx:
     image: luke/nginx
@@ -15,9 +16,27 @@ services:
       - "80:80"
       - "443:443"
     restart: always
+    depends_on:
+      - php-fpm
     networks:
       vpcbr:
         ipv4_address: 192.168.50.2
+  php-fpm:
+    image: luke/php-fpm
+    build:
+      context: ./php
+      dockerfile: Dockerfile-7.2
+    container_name: web_php
+    volumes:
+      - ./src:/src
+      - ./config/php/php.ini:/usr/local/etc/php/php.ini
+      - ./config/php/www.conf:/usr/local/etc/php-fpm.d/www.conf
+    ports:
+      - "9000:9000"
+    restart: always
+    networks:
+      vpcbr:
+        ipv4_address: 192.168.50.3
 
 networks:
   vpcbr:
