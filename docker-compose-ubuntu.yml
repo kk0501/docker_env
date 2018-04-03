@@ -1,17 +1,25 @@
 version: "3"
 
 services:
+  ubuntu:
+    image: luke/ubuntu
+    build:
+      context: ./ubuntu
+      dockerfile: Dockerfile-16.04
+    container_name: ubuntu
   nginx:
-    image: luke/nginx-origin
+    image: luke/nginx-ubuntu
     build:
       context: ./nginx
-      dockerfile: Dockerfile-1.13-origin
-    container_name: web_nginx_origin
+      dockerfile: Dockerfile-ubuntu
+    container_name: web_nginx_ubuntu
+    depends_on:
+      - ubuntu
     volumes:
       - ./src:/src
       - ./logs/nginx:/var/log/nginx
-      - ./config/nginx/nginx.conf:/etc/nginx/nginx.conf
-      - ./config/nginx/conf.d:/etc/nginx/conf.d
+      - ./config/nginx/ubuntu/nginx.conf:/etc/nginx/nginx.conf
+      - ./config/nginx/ubuntu/conf.d:/etc/nginx/conf.d
     ports:
       - "80:80"
       - "443:443"
@@ -20,17 +28,19 @@ services:
       - php-fpm
     networks:
       vpcbr:
-        ipv4_address: 192.168.40.2
+        ipv4_address: 192.168.30.2
   php-fpm:
-    image: luke/php-fpm-origin
+    image: luke/php-fpm-ubuntu
     build:
       context: ./php
-      dockerfile: Dockerfile-7.2-origin
-    container_name: web_php_origin
+      dockerfile: Dockerfile-ubuntu
+    container_name: web_php_ubuntu
+    depends_on:
+      - ubuntu
     volumes:
       - ./src:/src
-      - ./config/php/php.ini:/usr/local/etc/php/php.ini
-      - ./config/php/www.conf:/usr/local/etc/php-fpm.d/www.conf
+      - ./config/php/php.ini:/etc/php/7.2/fpm/php.ini
+      - ./config/php/www.conf:/etc/php/7.2/fpm/pool.d/www.conf
     ports:
       - "9000:9000"
     restart: always
@@ -41,13 +51,15 @@ services:
       - mongo-db
     networks:
       vpcbr:
-        ipv4_address: 192.168.40.3
+        ipv4_address: 192.168.30.3
   mysql-db:
-    image: luke/mysql-origin
+    image: luke/mysql-ubuntu
     build:
       context: ./mysql
-      dockerfile: Dockerfile-5.7-origin
-    container_name: web_mysql_origin
+      dockerfile: Dockerfile-ubuntu
+    container_name: web_mysql_ubuntu
+    depends_on:
+      - ubuntu
     volumes:
       - ./data/mysql:/var/lib/mysql
       - ./config/mysql/mysqld.cnf:/etc/mysql/mysql.conf.d/mysqld.cnf
@@ -63,13 +75,15 @@ services:
       - MYSQL_PASSWORD=2018@laravel
     networks:
       vpcbr:
-        ipv4_address: 192.168.40.4
+        ipv4_address: 192.168.30.4
   redis-db:
-    image: luke/redis-origin
+    image: luke/redis-ubuntu
     build:
       context: ./redis
-      dockerfile: Dockerfile-4-origin
-    container_name: web_redis_origin
+      dockerfile: Dockerfile-ubuntu
+    container_name: web_redis_ubuntu
+    depends_on:
+      - ubuntu
     volumes:
       - ./data/redis:/data
       - ./config/redis/redis.conf:/etc/redis/redis.conf
@@ -80,26 +94,26 @@ services:
     restart: always
     networks:
       vpcbr:
-        ipv4_address: 192.168.40.5
+        ipv4_address: 192.168.30.5
   memcached-db:
     image: luke/memcached
     build:
       context: ./memcached
       dockerfile: Dockerfile-1.5
-    container_name: web_memcached_origin
+    container_name: web_memcached_ubuntu
     command: [ "memcached", "-m", "64" ]
     ports:
         - "11211:11211"
     restart: always
     networks:
       vpcbr:
-        ipv4_address: 192.168.40.6
+        ipv4_address: 192.168.30.6
   mongo-db:
     image: luke/mongo-origin
     build:
       context: ./mongo
       dockerfile: Dockerfile-3.6-origin
-    container_name: web_mongo_origin
+    container_name: web_mongo_ubuntu
     environment:
       - MONGO_DATA_DIR=/data/db
       - MONGO_LOG_DIR=/dev/null
@@ -111,11 +125,11 @@ services:
     restart: always
     networks:
       vpcbr:
-        ipv4_address: 192.168.40.7
+        ipv4_address: 192.168.30.7
 
 networks:
   vpcbr:
     driver: bridge
     ipam:
       config:
-        - subnet: 192.168.40.0/24
+        - subnet: 192.168.30.0/24
