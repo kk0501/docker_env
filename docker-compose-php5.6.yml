@@ -1,0 +1,121 @@
+version: "3"
+
+services:
+  nginx:
+    image: luke/nginx
+    build:
+      context: ./nginx
+      dockerfile: Dockerfile-1.13
+    container_name: web_nginx
+    volumes:
+      - ./src:/src
+      - ./logs/nginx:/var/log/nginx
+      - ./config/nginx/nginx.conf:/etc/nginx/nginx.conf
+      - ./config/nginx/conf.d:/etc/nginx/conf.d
+    ports:
+      - "80:80"
+      - "443:443"
+    restart: always
+    depends_on:
+      - php-fpm
+    networks:
+      vpcbr:
+        ipv4_address: 192.168.90.2
+  php-fpm:
+    image: luke/php-fpm-5.6
+    build:
+      context: ./php
+      dockerfile: Dockerfile-5.6
+    container_name: web_php
+    volumes:
+      - ./src:/src
+      - ./config/php/php.ini:/usr/local/etc/php/php.ini
+      - ./config/php/www.conf:/usr/local/etc/php-fpm.d/www.conf
+    ports:
+      - "9000:9000"
+    restart: always
+    links:
+      - mysql-db
+      - redis-db
+      - memcached-db
+      - mongo-db
+    networks:
+      vpcbr:
+        ipv4_address: 192.168.90.3
+  mysql-db:
+    image: luke/mysql
+    build:
+      context: ./mysql
+      dockerfile: Dockerfile-5.7
+    container_name: web_mysql
+    volumes:
+      - ./data/mysql:/var/lib/mysql
+      - ./config/mysql/mysqld.cnf:/etc/mysql/mysql.conf.d/mysqld.cnf
+      - ./config/mysql/mysql.cnf:/etc/mysql/conf.d/mysql.cnf
+      - ./logs/mysql:/var/log/mysql
+    ports:
+      - "3306:3306"
+    restart: always
+    environment:
+      - MYSQL_DATABASE=test
+      - MYSQL_ROOT_PASSWORD=laravel@2018
+      - MYSQL_USER=phper
+      - MYSQL_PASSWORD=2018@laravel
+    networks:
+      vpcbr:
+        ipv4_address: 192.168.90.4
+  redis-db:
+    image: luke/redis
+    build:
+      context: ./redis
+      dockerfile: Dockerfile-4
+    container_name: web_redis
+    volumes:
+      - ./data/redis:/data
+      - ./config/redis/redis.conf:/etc/redis/redis.conf
+      - ./logs/redis:/var/log/redis
+    command: [ "redis-server", "/etc/redis/redis.conf" ]
+    ports:
+      - "6379:6379"
+    restart: always
+    networks:
+      vpcbr:
+        ipv4_address: 192.168.90.5
+  memcached-db:
+    image: luke/memcached
+    build:
+      context: ./memcached
+      dockerfile: Dockerfile-1.5
+    container_name: web_memcached
+    command: [ "memcached", "-m", "64" ]
+    ports:
+        - "11211:11211"
+    restart: always
+    networks:
+      vpcbr:
+        ipv4_address: 192.168.90.6
+  mongo-db:
+    image: luke/mongo
+    build:
+      context: ./mongo
+      dockerfile: Dockerfile-3.6
+    container_name: web_mongo
+    environment:
+      - MONGO_DATA_DIR=/data/db
+      - MONGO_LOG_DIR=/dev/null
+    volumes:
+      - ./data/mongo:/data/db
+    ports:
+        - 27017:27017
+    command: ["mongod", "--smallfiles", "--logpath=/dev/null"]
+    restart: always
+    networks:
+      vpcbr:
+        ipv4_address: 192.168.90.7
+
+networks:
+  vpcbr:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 192.168.90.0/24

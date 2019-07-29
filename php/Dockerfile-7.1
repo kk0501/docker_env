@@ -21,9 +21,16 @@ ENV LC_ALL=en_US.UTF-8 \
 RUN echo 'export LC_ALL=en_US.UTF-8' >> ~/.bashrc \
     && echo 'export LANG=en_US.UTF-8' >> ~/.bashrc
 
-RUN buildDeps='libfreetype6-dev libjpeg62-turbo-dev libmcrypt-dev libcurl4-openssl-dev libpng-dev imagemagick libmagickwand-dev ca-certificates build-essential memcached libmemcached-dev zlib1g-dev libxml2-dev git libxslt1-dev libicu-dev g++' \
-    && apt-get update && apt-get install -y --fix-missing $buildDeps \
-    && docker-php-ext-configure gd --with-freetype-dir=/usr/include/ --with-jpeg-dir=/usr/include/ \
+RUN buildDeps='pkg-config patch libfreetype6-dev libjpeg62-turbo-dev libmcrypt-dev libcurl4-openssl-dev libpng-dev imagemagick libmagickwand-dev ca-certificates build-essential memcached libmemcached-dev zlib1g-dev libxml2-dev git libxslt1-dev libicu-dev g++' \
+    && apt-get update && apt-get install -y --fix-missing $buildDeps
+
+ADD https://git.archlinux.org/svntogit/packages.git/plain/trunk/freetype.patch?h=packages/php /tmp/freetype.patch
+RUN docker-php-source extract; \
+  cd /usr/src/php; \
+  patch -p1 -i /tmp/freetype.patch; \
+  rm /tmp/freetype.patch
+
+RUN docker-php-ext-configure gd --with-freetype-dir=/usr/include/ --with-jpeg-dir=/usr/include/ \
     && docker-php-ext-install -j$(nproc) gd opcache pdo_mysql mysqli zip soap mcrypt intl xsl \
     && echo ''| pecl install redis \
     && echo ''| pecl install memcached \
@@ -33,14 +40,14 @@ RUN buildDeps='libfreetype6-dev libjpeg62-turbo-dev libmcrypt-dev libcurl4-opens
     && docker-php-ext-enable imagick
 
 RUN apt-get install -y gnupg
-RUN curl -OL https://phar.phpunit.de/phpunit-7.0.phar \
-    && chmod +x phpunit-7.0.phar \
-    && mv phpunit-7.0.phar /usr/local/bin/phpunit \
+RUN curl -OL https://phar.phpunit.de/phpunit-7.0.0.phar \
+    && chmod +x phpunit-7.0.0.phar \
+    && mv phpunit-7.0.0.phar /usr/local/bin/phpunit \
     && curl https://getcomposer.org/installer | php -- \
     && mv composer.phar /usr/local/bin/composer \
-    && chmod +x /usr/local/bin/composer \
-    && curl -sL https://deb.nodesource.com/setup_8.x | bash - \
-    && DEBIAN_FRONTEND=noninteractive apt-get install -y nodejs \
+    && chmod +x /usr/local/bin/composer
+RUN curl -sL https://deb.nodesource.com/setup_8.x | bash - \
+    && DEBIAN_FRONTEND=noninteractive apt-get install -y nodejs npm\
     && npm -g install yarn
 
 WORKDIR /src
