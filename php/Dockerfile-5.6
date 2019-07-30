@@ -32,8 +32,8 @@ RUN docker-php-source extract; \
 
 RUN docker-php-ext-configure gd --with-freetype-dir=/usr/include/ --with-jpeg-dir=/usr/include/ \
     && docker-php-ext-install -j$(nproc) gd opcache pdo_mysql mysqli zip soap mcrypt intl xsl \
-    && echo ''| pecl install redis \
-    && echo ''| pecl install memcached \
+    && echo ''| pecl install http://pecl.php.net/get/redis-4.3.0.tgz \
+    && echo ''| pecl install http://pecl.php.net/get/memcached-2.2.0.tgz \
     && echo ''| pecl install imagick \
     && docker-php-ext-enable redis \
     && docker-php-ext-enable memcached \
